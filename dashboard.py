@@ -3,34 +3,59 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-# Project configuration
+# Page settings
 st.set_page_config(
     page_title="SalesPulse Analytics",
     page_icon="📊",
     layout="wide"
 )
 
-# Locate the processed sales data
+# Load data
 PROJECT_FOLDER = Path(__file__).resolve().parent
-DATA_FILE = PROJECT_FOLDER / "cleaned_sales.csv"
+DATA_FILE = PROJECT_FOLDER / "data" / "cleaned_sales.csv"
 
 st.title("📊 SalesPulse Analytics")
-st.subheader("E-commerce Sales Intelligence Dashboard")
+st.markdown("### E-commerce Sales Intelligence Dashboard")
+st.write("Explore sales performance with interactive filters.")
 
-st.markdown(
-    "Explore sales performance, revenue, and product insights."
-)
-
-# Load the data
 df = pd.read_csv(DATA_FILE)
 
-# Calculate dashboard metrics
-total_revenue = df["revenue"].sum()
-total_orders = df["order_id"].nunique()
-units_sold = df["quantity"].sum()
-products_count = df["product"].nunique()
+# Sidebar filters
+st.sidebar.header("🔎 Filter Sales")
 
-# Display KPI cards
+categories = ["All"] + sorted(df["category"].dropna().unique().tolist())
+selected_category = st.sidebar.selectbox(
+    "Choose Category",
+    categories
+)
+
+filtered_df = df.copy()
+
+if selected_category != "All":
+    filtered_df = filtered_df[
+        filtered_df["category"] == selected_category
+    ]
+
+products = ["All"] + sorted(
+    filtered_df["product"].dropna().unique().tolist()
+)
+
+selected_product = st.sidebar.selectbox(
+    "Choose Product",
+    products
+)
+
+if selected_product != "All":
+    filtered_df = filtered_df[
+        filtered_df["product"] == selected_product
+    ]
+
+# Metrics
+total_revenue = filtered_df["revenue"].sum()
+total_orders = filtered_df["order_id"].nunique()
+units_sold = filtered_df["quantity"].sum()
+products_count = filtered_df["product"].nunique()
+
 col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("💰 Total Revenue", f"₹{total_revenue:,.0f}")
@@ -41,32 +66,54 @@ col4.metric("🏷️ Products", f"{products_count}")
 st.divider()
 
 # Revenue by product
-st.subheader("Revenue by Product")
+st.subheader("📈 Revenue by Product")
 
-product_sales = (
-    df.groupby("product", as_index=False)["revenue"]
-    .sum()
-    .sort_values("revenue", ascending=False)
-)
+if not filtered_df.empty:
+    product_sales = (
+        filtered_df.groupby("product", as_index=False)["revenue"]
+        .sum()
+        .sort_values("revenue", ascending=False)
+    )
 
-fig = px.bar(
-    product_sales,
-    x="product",
-    y="revenue",
-    color="product",
-    title="Total Revenue by Product",
-    labels={
-        "product": "Product",
-        "revenue": "Revenue (₹)"
-    },
-    text_auto=True
-)
+    fig_product = px.bar(
+        product_sales,
+        x="product",
+        y="revenue",
+        color="product",
+        title="Revenue by Product",
+        labels={
+            "product": "Product",
+            "revenue": "Revenue (₹)"
+        },
+        text_auto=True
+    )
 
-st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_product, use_container_width=True)
 
-# Sales data table
-st.subheader("📋 Processed Sales Records")
+    # Revenue by category
+    st.subheader("📊 Revenue by Category")
 
-st.dataframe(df, use_container_width=True)
+    category_sales = (
+        filtered_df.groupby("category", as_index=False)["revenue"]
+        .sum()
+        .sort_values("revenue", ascending=False)
+    )
 
-st.caption("SalesPulse | Python • Pandas • ETL • Interactive Analytics")
+    fig_category = px.pie(
+        category_sales,
+        names="category",
+        values="revenue",
+        title="Revenue Share by Category",
+        hole=0.4
+    )
+
+    st.plotly_chart(fig_category, use_container_width=True)
+
+    # Data table
+    st.subheader("📋 Filtered Sales Records")
+    st.dataframe(filtered_df, use_container_width=True)
+
+else:
+    st.warning("No sales records match your selected filters.")
+
+st.caption("SalesPulse | Python • Pandas • ETL • Streamlit • Plotly")
