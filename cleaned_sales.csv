@@ -1,0 +1,9 @@
+order_id,product,category,quantity,price,revenue
+101,Laptop,Electronics,2,50000,100000
+102,Mouse,Accessories,3,500,1500
+103,Keyboard,Accessories,1,1500,1500
+104,Monitor,Electronics,2,10000,20000
+105,Mouse,Accessories,1,500,500
+106,Headphones,Accessories,2,2000,4000
+107,Laptop,Electronics,1,50000,50000
+108,Monitor,Electronics,1,10000,10000
