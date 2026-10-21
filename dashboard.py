@@ -12,7 +12,7 @@ st.set_page_config(
 
 # Load data
 PROJECT_FOLDER = Path(__file__).resolve().parent
-DATA_FILE = PROJECT_FOLDER / "data" / "cleaned_sales.csv"
+DATA_FILE = PROJECT_FOLDER  / "cleaned_sales.csv"
 
 st.title("📊 SalesPulse Analytics")
 st.markdown("### E-commerce Sales Intelligence Dashboard")
